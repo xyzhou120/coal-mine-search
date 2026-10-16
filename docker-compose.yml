@@ -25,8 +25,10 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # 不暴露宿主机端口，只在内部网络访问
+    # 如需本地调试连接数据库，可临时改为 "5433:5432" 避开端口冲突
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-coal_mine} -d ${POSTGRES_DB:-coal_mine_search}"]
       interval: 10s
@@ -45,8 +47,10 @@ services:
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
+    # 不暴露宿主机端口，只在内部网络访问
+    # 如需本地调试连接 Redis，可临时改为 "6380:6379" 避开端口冲突
+    expose:
+      - "6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

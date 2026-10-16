@@ -1,0 +1,37 @@
+# Web 框架
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
+
+# 配置管理
+pydantic-settings==2.6.1
+pydantic==2.10.2
+
+# 数据库
+sqlalchemy==2.0.36
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+alembic==1.14.0
+
+# 任务队列
+celery==5.4.0
+redis==5.2.0
+kombu==5.4.2
+
+# HTTP 客户端（文件下载）
+httpx==0.28.0
+
+# PageIndex
+pageindex==0.1.12
+
+# OpenAI 兼容客户端（调用私有化 LLM/OCR/Vision）
+openai==1.57.0
+
+# 文档处理
+pymupdf==1.24.13          # PDF 处理
+python-docx==1.1.2        # Word 处理
+openpyxl==3.1.5           # Excel 处理
+Pillow==11.0.0            # 图片处理
+
+# 工具
+python-dateutil==2.9.0

@@ -79,11 +79,11 @@ class Settings(BaseSettings):
 
     # ------------------------------------------------------------------
     # PaddleOCR-VL 模型配置
-    # 优先用于纯文字识别（比视觉模型更快更准）
+    # 接口格式：POST multipart/form-data，字段名 file 上传图片文件
+    # 示例：curl --location 'http://172.26.1.84:7000/ocr' --form 'file=@image.png'
     # ------------------------------------------------------------------
-    paddleocr_api_base_url: str = ""
-    paddleocr_api_key: str = ""
-    paddleocr_model_name: str = ""  # 如：paddleocr-vl
+    # OCR 服务完整 URL（含路径），如：http://172.26.1.84:7000/ocr
+    paddleocr_api_url: str = ""
     paddleocr_request_timeout: int = 60
 
     # ------------------------------------------------------------------
@@ -144,7 +144,7 @@ class Settings(BaseSettings):
     @property
     def paddleocr_configured(self) -> bool:
         """PaddleOCR 是否已配置"""
-        return bool(self.paddleocr_api_base_url and self.paddleocr_model_name)
+        return bool(self.paddleocr_api_url)
 
     @property
     def embedding_configured(self) -> bool:

@@ -181,32 +181,46 @@ def _call_ocr(img_bytes: bytes, page_num: int) -> str:
 
 
 def _call_paddleocr(img_bytes: bytes) -> str:
-    """调用 PaddleOCR-VL API（OpenAI 兼容接口）"""
-    client = OpenAI(
-        base_url=settings.paddleocr_api_base_url,
-        api_key=settings.paddleocr_api_key or "none",
-        timeout=settings.paddleocr_request_timeout,
-    )
-    b64_image = base64.b64encode(img_bytes).decode("utf-8")
-    response = client.chat.completions.create(
-        model=settings.paddleocr_model_name,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{b64_image}"},
-                    },
-                    {
-                        "type": "text",
-                        "text": "请识别图片中的所有文字内容，保持原有格式和排版，直接输出文字，不要添加任何说明。",
-                    },
-                ],
-            }
-        ],
-    )
-    return response.choices[0].message.content or ""
+    """调用 PaddleOCR 接口（multipart/form-data，字段名 file）"""
+    with httpx.Client(timeout=settings.paddleocr_request_timeout) as client:
+        response = client.post(
+            settings.paddleocr_api_url,
+            files={"file": ("page.png", img_bytes, "image/png")},
+        )
+        response.raise_for_status()
+        data = response.json()
+
+    # 兼容常见返回格式，尝试提取文字内容
+    # 格式1：{"result": "识别的文字"}
+    # 格式2：{"text": "识别的文字"}
+    # 格式3：{"data": [{"text": "..."}]}  （逐行结果）
+    # 格式4：直接返回字符串
+    if isinstance(data, str):
+        return data
+    if isinstance(data, dict):
+        if "result" in data:
+            return str(data["result"])
+        if "text" in data:
+            return str(data["text"])
+        if "data" in data and isinstance(data["data"], list):
+            lines = []
+            for item in data["data"]:
+                if isinstance(item, dict) and "text" in item:
+                    lines.append(item["text"])
+                elif isinstance(item, str):
+                    lines.append(item)
+            return "\n".join(lines)
+    if isinstance(data, list):
+        lines = []
+        for item in data:
+            if isinstance(item, dict) and "text" in item:
+                lines.append(item["text"])
+            elif isinstance(item, str):
+                lines.append(item)
+        return "\n".join(lines)
+
+    logger.warning(f"PaddleOCR 返回格式未识别，原始内容: {str(data)[:200]}")
+    return str(data)
 
 
 def _call_vision_model(img_bytes: bytes, page_num: int) -> str:

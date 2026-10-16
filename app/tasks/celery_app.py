@@ -10,7 +10,7 @@ celery_app = Celery(
     "coal_mine_search",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["tasks.import_tasks"],
+    include=["app.tasks.import_tasks"],
 )
 
 celery_app.conf.update(
@@ -34,7 +34,7 @@ celery_app.conf.update(
     result_expires=604800,
     # 任务路由
     task_routes={
-        "tasks.import_tasks.process_single_document": {"queue": "documents"},
-        "tasks.import_tasks.process_excel_batch": {"queue": "celery"},
+        "app.tasks.import_tasks.process_single_document": {"queue": "documents"},
+        "app.tasks.import_tasks.process_excel_batch": {"queue": "celery"},
     },
 )

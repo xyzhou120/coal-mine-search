@@ -90,7 +90,7 @@ services:
       retries: 3
     networks:
       - coal_mine_net
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 
   # ----------------------------------------------------------
   # Celery Worker（文档异步处理）
@@ -117,7 +117,7 @@ services:
     networks:
       - coal_mine_net
     command: >
-      celery -A tasks.celery_app worker
+      celery -A app.tasks.celery_app worker
       --loglevel=info
       --concurrency=${CELERY_WORKER_CONCURRENCY:-5}
       -Q celery,documents

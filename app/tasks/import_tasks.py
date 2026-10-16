@@ -39,7 +39,7 @@ def get_sync_db() -> Session:
 
 @shared_task(
     bind=True,
-    name="tasks.import_tasks.process_single_document",
+    name="app.tasks.import_tasks.process_single_document",
     max_retries=3,
     default_retry_delay=60,
     queue="documents",
@@ -178,7 +178,7 @@ def process_single_document(self, attachment_id: str, import_task_id: str):
 # ------------------------------------------------------------------
 
 @shared_task(
-    name="tasks.import_tasks.process_excel_batch",
+    name="app.tasks.import_tasks.process_excel_batch",
     queue="celery",
 )
 def process_excel_batch(import_task_id: str):

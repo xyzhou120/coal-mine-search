@@ -127,16 +127,17 @@ services:
       -Q celery,documents
 
   # ----------------------------------------------------------
-  # Nginx 反向代理
+  # 前端（Vue3 + Nginx，同时反向代理 API）
   # ----------------------------------------------------------
-  nginx:
-    image: nginx:alpine
-    container_name: coal_mine_nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: coal-mine-search-frontend:latest
+    container_name: coal_mine_frontend
     restart: unless-stopped
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - app
     networks:

@@ -22,7 +22,7 @@ kombu==5.4.2
 httpx==0.28.0
 
 # PageIndex
-pageindex==0.1.12
+pageindex==0.4.0
 
 # OpenAI 兼容客户端（调用私有化 LLM/OCR/Vision）
 openai==1.57.0

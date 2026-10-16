@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import get_settings
 from app.models.database import DocumentIndex, ImportTask
 from app.services.file_downloader import download_file, cleanup_temp_files, get_temp_dir
-from app.services.document_processor import process_document
+from app.services.document_processor import process_document, DocumentProcessError
 from app.services.index_service import submit_document_for_indexing
 from app.utils.helpers import safe_filename
 
@@ -92,6 +92,12 @@ def process_single_document(self, attachment_id: str, import_task_id: str):
         temp_dir = get_temp_dir(doc.mine_code, doc.attachment_id)
         try:
             processed_path = process_document(local_path, temp_dir)
+        except DocumentProcessError as e:
+            # 格式不支持等确定性错误，不重试，直接标记失败
+            logger.error(f"文档预处理失败（不重试）: {attachment_id}: {e}")
+            _update_doc_status(db, doc, "failed", str(e))
+            _update_import_task_progress(db, import_task_id, "failed")
+            return
         except Exception as e:
             logger.error(f"文档预处理失败: {attachment_id}: {e}")
             _update_doc_status(db, doc, "failed", str(e))

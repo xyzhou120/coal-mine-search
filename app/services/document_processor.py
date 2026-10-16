@@ -69,10 +69,24 @@ def process_document(original_path: str, temp_dir: str) -> str:
             result = _process_word(original_path, output_path)
         elif ext in (".xls", ".xlsx"):
             result = _process_excel(original_path, output_path)
+        elif ext in (".dwg", ".dxf", ".dwf"):
+            raise DocumentProcessError(
+                f"AutoCAD 图纸格式（{ext}）暂不支持文字提取，已跳过"
+            )
         else:
-            # 未知格式，尝试当 PDF 处理
-            logger.warning(f"未知文件格式 {ext}，尝试当 PDF 处理")
-            result = _process_pdf(original_path, output_path)
+            # 未知格式，尝试检测文件头后决定处理方式
+            with open(original_path, "rb") as f:
+                header = f.read(8)
+            if header.startswith(b"%PDF"):
+                result = _process_pdf(original_path, output_path)
+            elif header[:2] == b"AC":
+                raise DocumentProcessError(
+                    f"AutoCAD DWG 格式暂不支持处理: {os.path.basename(original_path)}"
+                )
+            else:
+                raise DocumentProcessError(
+                    f"不支持的文件格式（扩展名: {ext}，文件头: {header[:4]}）"
+                )
 
         logger.info(f"文档处理完成: {result}")
         return result
@@ -93,6 +107,21 @@ def _process_pdf(input_path: str, output_path: str) -> str:
     - 无文字层则调用 OCR
     - 全部页面处理后输出为新 PDF
     """
+    # 先检测文件实际类型，避免非 PDF 文件（如 DWG）被误当 PDF 处理
+    with open(input_path, "rb") as f:
+        header = f.read(8)
+
+    # DWG 文件头：AC1015/AC1018/AC1021/AC1024/AC1027/AC1032
+    if header[:2] == b"AC":
+        raise DocumentProcessError(
+            f"文件实际为 AutoCAD DWG 格式，暂不支持处理: {os.path.basename(input_path)}"
+        )
+    # 非 PDF 文件头（PDF 以 %PDF 开头）
+    if not header.startswith(b"%PDF"):
+        raise DocumentProcessError(
+            f"文件不是有效的 PDF（文件头: {header[:4]}），"
+            f"实际格式可能为图片或其他格式: {os.path.basename(input_path)}"
+        )
     doc = fitz.open(input_path)
     total_pages = len(doc)
     logger.info(f"PDF 共 {total_pages} 页")

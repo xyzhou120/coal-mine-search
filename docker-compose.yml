@@ -71,8 +71,6 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - PYTHONPATH=/app
     volumes:
       - pageindex_data:/data/pageindex_index
       - temp_data:/data/temp
@@ -92,7 +90,7 @@ services:
       retries: 3
     networks:
       - coal_mine_net
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
 
   # ----------------------------------------------------------
   # Celery Worker（文档异步处理）
@@ -107,8 +105,6 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - PYTHONPATH=/app
     volumes:
       - pageindex_data:/data/pageindex_index
       - temp_data:/data/temp
@@ -121,7 +117,7 @@ services:
     networks:
       - coal_mine_net
     command: >
-      celery -A app.tasks.celery_app worker
+      celery -A tasks.celery_app worker
       --loglevel=info
       --concurrency=${CELERY_WORKER_CONCURRENCY:-5}
       -Q celery,documents

@@ -25,7 +25,8 @@ httpx==0.28.0
 pageindex==0.4.0
 
 # OpenAI 兼容客户端（调用私有化 LLM/OCR/Vision）
-openai==1.57.0
+# 版本由 pageindex 依赖自动决定，不锁定
+openai>=1.70.0
 
 # 文档处理
 pymupdf==1.24.13          # PDF 处理
